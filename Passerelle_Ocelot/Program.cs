@@ -11,6 +11,7 @@ builder.Configuration.AddOcelotWithSwaggerSupport(options =>
 });
 builder.Services.AddOcelot(builder.Configuration);
 builder.Services.AddSwaggerForOcelot(builder.Configuration);
+builder.Services.AddMvcCore().AddApiExplorer();
 
 var app = builder.Build();
 app.UseSwaggerForOcelotUI(options =>
