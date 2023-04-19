@@ -11,7 +11,7 @@
         }
       ],
       "UpstreamPathTemplate": "/api/client/{everything}",
-      "UpstreamHttpMethod": [ "GET", "POST", "PUT", "DELETE" ]
+      "UpstreamHttpMethod": [ "Get", "POST", "PUT", "DELETE" ]
     }
   ]
 }
