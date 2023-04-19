@@ -21,6 +21,7 @@ namespace ClientApi.Controllers
         [SwaggerOperation(Summary = "Obtenir un client")]
         [SwaggerResponse(StatusCodes.Status200OK, "Le client a été trouvé", typeof(Client))]
         [SwaggerResponse(StatusCodes.Status404NotFound, "Le client n'existe pas", typeof(ValidationProblemDetails))]
+        [SwaggerResponse(StatusCodes.Status400BadRequest, "La requête est invalide", typeof(ValidationProblemDetails))]
         public async Task<ActionResult<Client>> GetClient([SwaggerParameter("ID du client")] int id)
         {
             try
@@ -119,7 +120,61 @@ namespace ClientApi.Controllers
             }
         }
 
-        //Test 
+        [HttpPut]
+        [Route("UpdateClientStats")]
+        [SwaggerOperation(Summary = "Modifier les statistiques d'un client")]
+        [SwaggerResponse(StatusCodes.Status200OK, "Les statistiques ont été modifiées", typeof(ClientStats))]
+        [SwaggerResponse(StatusCodes.Status400BadRequest, "La requête est invalide", typeof(ValidationProblemDetails))]
+        [SwaggerResponse(StatusCodes.Status404NotFound, "Le client n'existe pas")]
+        public async Task<ActionResult<ClientStats>> UpdateClientStats(ClientStats clientStats)
+        {
+            try 
+            {
+                ClientStats? stats = await _dbContext.ClientStats.Where(c => c.ClientId == clientStats.ClientId).FirstOrDefaultAsync();
+
+                if (stats == null)
+                    return NotFound();
+
+                stats.TotalSpent = clientStats.TotalSpent;
+                stats.PurchasedItems = clientStats.PurchasedItems;
+                await _dbContext.SaveChangesAsync();
+
+                return Ok(stats);
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(400, ex.Message);
+            }
+        }
+
+        [HttpDelete]
+        [Route("DeleteClient/{id}")]
+        [SwaggerOperation(Summary = "Supprimer un client")]
+        [SwaggerResponse(StatusCodes.Status200OK, "Le client a été supprimé", typeof(ClientStats))]
+        [SwaggerResponse(StatusCodes.Status400BadRequest, "La requête est invalide", typeof(ValidationProblemDetails))]
+        [SwaggerResponse(StatusCodes.Status404NotFound, "Le client n'existe pas")]
+        public async Task<ActionResult<ClientStats>> DeleteClient(int id)
+        {
+            try
+            {
+                Client? client = await _dbContext.Client.FindAsync(id);
+                ClientStats? stats = await _dbContext.ClientStats.Where(c => c.ClientId == id).FirstOrDefaultAsync();
+
+                if (client == null)
+                    return NotFound();
+
+                _dbContext.Client.Remove(client);
+                _dbContext.ClientStats.Remove(stats);
+                await _dbContext.SaveChangesAsync();
+
+                return Ok(stats);
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(400, ex.Message);
+            }
+        }
+
 
 
     }
