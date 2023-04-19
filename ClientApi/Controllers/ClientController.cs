@@ -16,12 +16,6 @@ namespace ClientApi.Controllers
         }
 
         [HttpGet]
-        public ActionResult GetOk()
-        {
-            return Ok();
-        }
-
-        [HttpGet]
         [Route("GetClient/{id}")]
         [SwaggerOperation(Summary = "Créer un nouveau client")]
         [SwaggerResponse(StatusCodes.Status200OK, "Le client a été créé", typeof(Client))]
