@@ -11,6 +11,17 @@
           "Url": "http://localhost:5001/swagger/v1/swagger.json"
         }
       ]
+    },
+    {
+      "Key": "product",
+      "TransformByOcelotConfig": true,
+      "Config": [
+        {
+          "Name": "ProductApi",
+          "Version": "1.0",
+          "Url": "http://localhost:5003/swagger/v1/swagger.json"
+        }
+      ]
     }
   ] 
 }
