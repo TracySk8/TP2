@@ -91,14 +91,10 @@ namespace ProductApi.Controllers
                 if (ClientExists(clientId).Result == false)
                     return NotFound("Le client n'existe pas");
 
-                    //Appeler l'API client pour déterminer si le client existe vraiment?
-                    //if (client == null)
-                    //    return NotFound();
-
-                    CartProduct? cartProduct = await _dbContext.CartProduct
-                    .Where(c => c.ClientId == clientId)
-                    .Where(c => c.ProductId == productId)
-                    .FirstOrDefaultAsync();
+                CartProduct? cartProduct = await _dbContext.CartProduct
+                .Where(c => c.ClientId == clientId)
+                .Where(c => c.ProductId == productId)
+                .FirstOrDefaultAsync();
 
                 
                 if (cartProduct == null) //Création du CartProduct
