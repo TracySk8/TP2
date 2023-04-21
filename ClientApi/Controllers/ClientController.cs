@@ -244,8 +244,6 @@ namespace ClientApi.Controllers
         //Source : https://learn.microsoft.com/en-us/aspnet/core/security/data-protection/consumer-apis/password-hashing?view=aspnetcore-7.0
         private string HashPassword(string password, byte[] salt)
         {
-            string saltstring = Convert.ToBase64String(salt);
-
             string hashed = Convert.ToBase64String(KeyDerivation.Pbkdf2(
                 password: password!,
                 salt: salt,
