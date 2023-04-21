@@ -12,5 +12,6 @@ namespace ClientApi
 
         public DbSet<Client> Client { get; set; }
         public DbSet<ClientStats> ClientStats { get; set; }
+        public DbSet<Password> Password { get; set; }
     }
 }

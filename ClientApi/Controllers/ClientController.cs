@@ -1,8 +1,11 @@
-﻿using ClientApi.Models;
+﻿using ClientApi.Classes;
+using ClientApi.Models;
+using Microsoft.AspNetCore.Cryptography.KeyDerivation;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using Swashbuckle.AspNetCore.Annotations;
+using System.Security.Cryptography;
 
 namespace ClientApi.Controllers
 {
@@ -44,24 +47,78 @@ namespace ClientApi.Controllers
         [SwaggerOperation(Summary = "Ajouter un nouveau client")]
         [SwaggerResponse(StatusCodes.Status201Created, "Le client a été créé", typeof(Client))]
         [SwaggerResponse(StatusCodes.Status400BadRequest, "La requête est invalide", typeof(ValidationProblemDetails))]
-        public async Task<ActionResult<Client>> AddClient(Client client) 
+        public async Task<ActionResult<Client>> AddClient(ClientCreation client) 
         {
             try 
-            { 
-                await _dbContext.Client.AddAsync(client);
+            {
+                bool nameTaken = _dbContext.Client.Where(c => c.Username == client.Username).Count() != 0;
+
+                if (nameTaken)
+                    return BadRequest("Ce nom d'utilisateur est déjà pris.");
+
+                if(client.Password.Length < 5)
+                    return BadRequest("Le mot de passe doit contenir au moins 5 caractères.");
+
+                //Enregistrer le client
+                Client clientDb = new Client()
+                {
+                    FirstName = client.FirstName,
+                    LastName = client.LastName,
+                    Credit = 0,
+                    Username = client.Username
+                };
+
+                await _dbContext.Client.AddAsync(clientDb);
                 await _dbContext.SaveChangesAsync();
 
                 ClientStats stats = new ClientStats()
                 {
                     PurchasedItems = 0,
                     TotalSpent = 0,
-                    ClientId = client.Id //Id modifié automatiquement après la sauvegarde
+                    ClientId = clientDb.Id //Id modifié automatiquement après la sauvegarde
                 };
+
+                //Hasher le mot de passe
+                byte[] salt = RandomNumberGenerator.GetBytes(128 / 8);
+                string hashedPassword = HashPassword(client.Password, salt);
+
+                _dbContext.Password.Add(new Password() { 
+                    Salt = Convert.ToBase64String(salt),
+                    Hash = hashedPassword,
+                    ClientId = clientDb.Id
+                });
+
                 await _dbContext.ClientStats.AddAsync(stats);
 
                 await _dbContext.SaveChangesAsync();
 
-                return StatusCode(201, client);
+                return StatusCode(201, clientDb);
+            }
+            catch (Exception ex)
+            {
+                return BadRequest(ex.Message);
+            }
+        }
+
+        [HttpPost]
+        [Route("ConnectClient")]
+        [SwaggerOperation(Summary = "Connecter un client")]
+        [SwaggerResponse(StatusCodes.Status200OK, "La connexion a été autorisée")]
+        [SwaggerResponse(StatusCodes.Status400BadRequest, "La requête est invalide", typeof(ValidationProblemDetails))]
+        [SwaggerResponse(StatusCodes.Status404NotFound, "Le client n'existe pas")]
+        public async Task<ActionResult> ConnectClient(string username, string password)
+        {
+            try
+            {
+                Client? clientDb = await _dbContext.Client.Where(c => c.Username == username).FirstOrDefaultAsync();
+
+                if (clientDb == null)
+                    return BadRequest("Cet usager n'existe pas.");
+
+                if (CheckPassword(clientDb.Id, password))
+                    return Ok(password); //retourner un jsonWebToken
+
+                return BadRequest("Mot de passe eronné.");
             }
             catch (Exception ex)
             {
@@ -175,6 +232,29 @@ namespace ClientApi.Controllers
             }
         }
 
+        private bool CheckPassword(int clientId, string password)
+        {
+            Password? passwordDb = _dbContext.Password.Where(c => c.ClientId == clientId).FirstOrDefault();
+            
+            byte[] salt = Convert.FromBase64String(passwordDb.Salt);
+            //Teste le mot de passe à l'aide du sel enregistré
+            return HashPassword(password, salt) == passwordDb.Hash;
+        }
+
+        //Source : https://learn.microsoft.com/en-us/aspnet/core/security/data-protection/consumer-apis/password-hashing?view=aspnetcore-7.0
+        private string HashPassword(string password, byte[] salt)
+        {
+            string saltstring = Convert.ToBase64String(salt);
+
+            string hashed = Convert.ToBase64String(KeyDerivation.Pbkdf2(
+                password: password!,
+                salt: salt,
+                prf: KeyDerivationPrf.HMACSHA256,
+                iterationCount: 100000,
+                numBytesRequested: 256 / 8));
+
+            return hashed;
+        }
 
 
     }

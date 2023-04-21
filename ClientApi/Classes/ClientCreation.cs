@@ -1,15 +1,10 @@
-﻿using Microsoft.EntityFrameworkCore;
+﻿using System.ComponentModel.DataAnnotations.Schema;
 using System.ComponentModel.DataAnnotations;
-using System.ComponentModel.DataAnnotations.Schema;
 
-namespace ClientApi.Models
+namespace ClientApi.Classes
 {
-    [Index(nameof(Username), IsUnique = true)]
-    public class Client
+    public class ClientCreation
     {
-        [Key]
-        [DatabaseGenerated(DatabaseGeneratedOption.Identity)]
-        public int Id { get; set; }
 
         [Required(ErrorMessage = "Champs requis")]
         public string LastName { get; set; }
@@ -21,6 +16,6 @@ namespace ClientApi.Models
         public string Username { get; set; }
 
         [Required(ErrorMessage = "Champs requis")]
-        public float Credit { get; set; }
+        public string Password { get; set; }
     }
 }
