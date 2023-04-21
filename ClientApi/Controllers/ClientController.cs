@@ -35,16 +35,16 @@ namespace ClientApi.Controllers
             }
             catch (Exception ex)
             {
-                return StatusCode(400, ex.Message);
+                return BadRequest(ex.Message);
             }
         }
 
         [HttpPost]
-        [Route("CreateClient")]
-        [SwaggerOperation(Summary = "Créer un nouveau client")]
+        [Route("AddClient")]
+        [SwaggerOperation(Summary = "Ajouter un nouveau client")]
         [SwaggerResponse(StatusCodes.Status201Created, "Le client a été créé", typeof(Client))]
         [SwaggerResponse(StatusCodes.Status400BadRequest, "La requête est invalide", typeof(ValidationProblemDetails))]
-        public async Task<ActionResult<Client>> CreateClient(Client client) 
+        public async Task<ActionResult<Client>> AddClient(Client client) 
         {
             try 
             { 
@@ -65,7 +65,7 @@ namespace ClientApi.Controllers
             }
             catch (Exception ex)
             {
-                return StatusCode(400, ex.Message);
+                return BadRequest(ex.Message);
             }
         }
 
@@ -93,7 +93,7 @@ namespace ClientApi.Controllers
             }
             catch (Exception ex)
             {
-                return StatusCode(400, ex.Message);
+                return BadRequest(ex.Message);
             }
         }
 
@@ -116,7 +116,7 @@ namespace ClientApi.Controllers
             }
             catch (Exception ex)
             {
-                return StatusCode(400, ex.Message);
+                return BadRequest(ex.Message);
             }
         }
 
@@ -143,7 +143,7 @@ namespace ClientApi.Controllers
             }
             catch (Exception ex)
             {
-                return StatusCode(400, ex.Message);
+                return BadRequest(ex.Message);
             }
         }
 
@@ -171,7 +171,7 @@ namespace ClientApi.Controllers
             }
             catch (Exception ex)
             {
-                return StatusCode(400, ex.Message);
+                return BadRequest(ex.Message);
             }
         }
 
