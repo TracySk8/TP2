@@ -10,7 +10,7 @@ using System.Security.Cryptography;
 namespace ClientApi.Controllers
 {
     [ApiController]
-    [Route("[controller]")]
+    [Route("api/[controller]")]
     public class ClientController : ControllerBase
     {
         private ClientDBContext _dbContext;
@@ -235,7 +235,7 @@ namespace ClientApi.Controllers
         private bool CheckPassword(int clientId, string password)
         {
             Password? passwordDb = _dbContext.Password.Where(c => c.ClientId == clientId).FirstOrDefault();
-            
+
             byte[] salt = Convert.FromBase64String(passwordDb.Salt);
             //Teste le mot de passe à l'aide du sel enregistré
             return HashPassword(password, salt) == passwordDb.Hash;
@@ -253,7 +253,5 @@ namespace ClientApi.Controllers
 
             return hashed;
         }
-
-
     }
 }

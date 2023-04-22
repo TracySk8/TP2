@@ -4,6 +4,10 @@ using Microsoft.EntityFrameworkCore;
 var builder = WebApplication.CreateBuilder(args);
 
 // Add services to the container.
+builder.Services.AddMvc(options =>
+{
+    options.EnableEndpointRouting = false;
+});
 
 builder.Services.AddControllers();
 builder.Services.AddEndpointsApiExplorer();
@@ -23,7 +27,7 @@ if (app.Environment.IsDevelopment())
     app.UseSwagger();
     app.UseSwaggerUI(c=>
     {
-        c.SwaggerEndpoint("/swagger/v1/swagger.json", "ClientApi");
+        c.SwaggerEndpoint("/swagger/v1/swagger.json", "v1");
     });
 }
 
