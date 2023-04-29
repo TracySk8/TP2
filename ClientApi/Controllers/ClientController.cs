@@ -1,8 +1,6 @@
 ﻿using ClientApi.Classes;
 using ClientApi.Models;
-using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Cryptography.KeyDerivation;
-using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using Swashbuckle.AspNetCore.Annotations;
@@ -26,7 +24,6 @@ namespace ClientApi.Controllers
         [SwaggerResponse(StatusCodes.Status200OK, "Le client a été trouvé", typeof(Client))]
         [SwaggerResponse(StatusCodes.Status404NotFound, "Le client n'existe pas", typeof(ValidationProblemDetails))]
         [SwaggerResponse(StatusCodes.Status400BadRequest, "La requête est invalide", typeof(ValidationProblemDetails))]
-        [Authorize]
         public async Task<ActionResult<Client>> GetClient([SwaggerParameter("ID du client")] int id)
         {
             try
