@@ -1,4 +1,5 @@
-﻿using Microsoft.AspNetCore.Mvc;
+﻿using ClientApi.Models;
+using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using ProductApi.Classes;
 using ProductApi.Models;
@@ -265,7 +266,10 @@ namespace ProductApi.Controllers
             HttpClient httpClient = new HttpClient();
 
             //TODO changer pour la passerelle quand fonctionnelle
-            HttpResponseMessage response = await httpClient.GetAsync($"http://localhost:5001/Client/GetClient/{clientId}");
+            HttpResponseMessage response = await httpClient.GetAsync($"http://localhost:5000/api/Client/GetClient/{clientId}");
+
+            Client? client = await httpClient.GetFromJsonAsync<ClientApi.Models.Client>($"http://localhost:5000/api/Client/GetClient/{clientId}");
+
 
             return response.IsSuccessStatusCode;
         }
