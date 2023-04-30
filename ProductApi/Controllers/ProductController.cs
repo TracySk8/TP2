@@ -10,6 +10,7 @@ namespace ProductApi.Controllers
 {
     [ApiController]
     [Route("api/[controller]")]
+    //[Produces("app/json")]
     public class ProductController : ControllerBase
     {
         private ProductDBContext _dbContext;
@@ -18,12 +19,19 @@ namespace ProductApi.Controllers
             _dbContext = context;
         }
 
-        [HttpGet]
+        /// <summary>
+        /// Obtenir un produit
+        /// </summary>
+        /// <param name="id">ID du produit.</param>
+        /// <returns>Un produit</returns>
+        /// <response code="200">Produit trouvé</response>
+        /// <response code="404">Le produit n'existe pas</response>
+        /// <response code="500">Erreur serveur interne</response>
+        [ProducesResponseType(StatusCodes.Status200OK)]
+        [ProducesResponseType(StatusCodes.Status404NotFound)]
+        [ProducesResponseType(StatusCodes.Status500InternalServerError)]
         [Route("GetProduct/{id}")]
-        [SwaggerOperation(Summary = "Obtenir un produit")]
-        [SwaggerResponse(StatusCodes.Status200OK, "Le produit a été trouvé", typeof(Models.Product))]
-        [SwaggerResponse(StatusCodes.Status404NotFound, "Le produit n'existe pas", typeof(ValidationProblemDetails))]
-        [SwaggerResponse(StatusCodes.Status400BadRequest, "La requête est invalide", typeof(ValidationProblemDetails))]
+        [HttpGet]
         public async Task<ActionResult<Models.Product>> GetProduct(int id)
         {
             try
@@ -37,16 +45,23 @@ namespace ProductApi.Controllers
             }
             catch (Exception ex)
             {
-                return BadRequest(ex.Message);
+                return StatusCode(500, ex.Message);
             }
         }
 
-        [HttpPost]
+        /// <summary>
+        /// Obtenir plusieurs produits
+        /// </summary>
+        /// <param name="id">ID du produit.</param>
+        /// <returns>Un produit</returns>
+        /// <response code="200">Les produits ont été trouvés</response>
+        /// <response code="404">Les produits n'existent pas</response>
+        /// <response code="500">Erreur serveur interne</response>
+        [ProducesResponseType(StatusCodes.Status200OK)]
+        [ProducesResponseType(StatusCodes.Status404NotFound)]
+        [ProducesResponseType(StatusCodes.Status500InternalServerError)]
         [Route("GetProductsById")]
-        [SwaggerOperation(Summary = "Obtenir plusieurs produits")]
-        [SwaggerResponse(StatusCodes.Status200OK, "Les produits ont été trouvés", typeof(Models.Product))]
-        [SwaggerResponse(StatusCodes.Status404NotFound, "Les produits n'existent pas", typeof(ValidationProblemDetails))]
-        [SwaggerResponse(StatusCodes.Status500InternalServerError, "La requête est invalide", typeof(ValidationProblemDetails))]
+        [HttpPost]
         public async Task<ActionResult<List<Models.Product>>> GetProductsById([FromBody] int[] id)
         {
             try
@@ -64,14 +79,22 @@ namespace ProductApi.Controllers
             }
         }
 
-        [HttpGet]
+        /// <summary>
+        /// Obtenir les produits du panier d'un client
+        /// </summary>
+        /// <param name="id">ID du client.</param>
+        /// <returns>Une liste de produits ainsi que leur quantité</returns>
+        /// <response code="200">Les produits ont été trouvés</response>
+        /// <response code="204">Aucun produit dans le panier</response>
+        /// <response code="404">Le client n'existe pas</response>
+        /// <response code="500">Erreur serveur interne</response>
+        [ProducesResponseType(StatusCodes.Status200OK)]
+        [ProducesResponseType(StatusCodes.Status204NoContent)]
+        [ProducesResponseType(StatusCodes.Status404NotFound)]
+        [ProducesResponseType(StatusCodes.Status500InternalServerError)]
         [Route("GetCartProducts/{id}")]
-        [SwaggerOperation(Summary = "Obtenir les produits dans le panier d'un client")]
-        [SwaggerResponse(StatusCodes.Status200OK, "Les produits ont été trouvés", typeof(List<ProductAndQuantity>))]
-        [SwaggerResponse(StatusCodes.Status204NoContent, "Le client n'a aucun produit dans son panier")]
-        [SwaggerResponse(StatusCodes.Status404NotFound, "Le client n'existe pas", typeof(ValidationProblemDetails))]
-        [SwaggerResponse(StatusCodes.Status400BadRequest, "La requête est invalide", typeof(ValidationProblemDetails))]
-        public async Task<ActionResult<List<ProductAndQuantity>>> GetCartProducts([SwaggerParameter("ID du client")] int id)
+        [HttpGet]
+        public async Task<ActionResult<List<ProductAndQuantity>>> GetCartProducts(int id)
         {
             try
             {
@@ -98,16 +121,26 @@ namespace ProductApi.Controllers
             }
             catch (Exception ex)
             {
-                return BadRequest(ex.Message);
+                return StatusCode(500, ex.Message);
             }
         }
 
-        [HttpPost]
+        /// <summary>
+        /// Gèrer un produit dans le panier d'un client
+        /// </summary>
+        /// <param name="clientId">ID du client.</param>
+        /// <param name="productId">ID du produit.</param>
+        /// <param name="quantity">Quantité d'article.</param>
+        /// <returns></returns>
+        /// <response code="200">Le panier a été modifié</response>
+        /// <response code="404">Le client ou le produit n'existe pas</response>
+        /// <response code="500">Erreur serveur interne</response>
+        [ProducesResponseType(StatusCodes.Status200OK)]
+        [ProducesResponseType(StatusCodes.Status204NoContent)]
+        [ProducesResponseType(StatusCodes.Status404NotFound)]
+        [ProducesResponseType(StatusCodes.Status500InternalServerError)]
         [Route("ManageCartProduct")]
-        [SwaggerOperation(Summary = "Gèrer un produit dans le panier d'un client")]
-        [SwaggerResponse(StatusCodes.Status200OK, "Le panier a été modifié")]
-        [SwaggerResponse(StatusCodes.Status404NotFound, "Le client ou le produit n'existe pas", typeof(ValidationProblemDetails))]
-        [SwaggerResponse(StatusCodes.Status400BadRequest, "La requête est invalide", typeof(ValidationProblemDetails))]
+        [HttpPost]
         public async Task<ActionResult> ManageCartProduct(int clientId, int productId, int quantity)
         {
             try
@@ -145,16 +178,24 @@ namespace ProductApi.Controllers
             }
             catch (Exception ex)
             {
-                return BadRequest(ex.Message);
+                return StatusCode(500, ex.Message);
             }
         }
 
-        [HttpGet]
+        /// <summary>
+        /// Obtenir les produits d'un vendeur
+        /// </summary>
+        /// <param name="id">ID du vendeur.</param>
+        /// <returns>Les produits d'un vendeur</returns>
+        /// <response code="200">Les produits ont été trouvés</response>
+        /// <response code="404">Le vendeur n'existe pas</response>
+        /// <response code="500">Erreur serveur interne</response>
+        [ProducesResponseType(StatusCodes.Status200OK)]
+        [ProducesResponseType(StatusCodes.Status204NoContent)]
+        [ProducesResponseType(StatusCodes.Status404NotFound)]
+        [ProducesResponseType(StatusCodes.Status500InternalServerError)]
         [Route("GetSellerProducts/{id}")]
-        [SwaggerOperation(Summary = "Obtenir les produits d'un vendeur")]
-        [SwaggerResponse(StatusCodes.Status200OK, "Les produits ont été trouvés", typeof(List<Models.Product>))]
-        [SwaggerResponse(StatusCodes.Status400BadRequest, "La requête est invalide", typeof(ValidationProblemDetails))]
-        [SwaggerResponse(StatusCodes.Status404NotFound, "Le vendeur n'existe pas", typeof(ValidationProblemDetails))]
+        [HttpGet]
         public async Task<ActionResult<List<Models.Product>>> GetSellerProducts([SwaggerParameter("ID du vendeur")] int id)
         {
             try
@@ -173,15 +214,25 @@ namespace ProductApi.Controllers
             }
         }
 
-        [HttpPost]
+        /// <summary>
+        /// Ajouter un nouveau produit
+        /// </summary>
+        /// <param name="product">Produit</param>
+        /// <returns>Le produit</returns>
+        /// <response code="201">Le produit a été créé</response>
+        /// <response code="404">Le vendeur n'existe pas</response>
+        /// <response code="500">Erreur serveur interne</response>
+        [ProducesResponseType(StatusCodes.Status201Created)]
+        [ProducesResponseType(StatusCodes.Status404NotFound)]
+        [ProducesResponseType(StatusCodes.Status500InternalServerError)]
         [Route("AddProduct")]
-        [SwaggerOperation(Summary = "Ajouter un nouveau produit")]
-        [SwaggerResponse(StatusCodes.Status201Created, "Le produit a été créé", typeof(Models.Product))]
-        [SwaggerResponse(StatusCodes.Status400BadRequest, "La requête est invalide", typeof(ValidationProblemDetails))]
+        [HttpPost]
         public async Task<ActionResult> AddProduct(Models.Product product)
         {
             try 
             { 
+                //Vérifier si le vendeur existe
+
                 await _dbContext.Product.AddAsync(product);
                 await _dbContext.SaveChangesAsync();
 
@@ -210,17 +261,24 @@ namespace ProductApi.Controllers
             }
             catch(Exception ex) 
             { 
-                return BadRequest(ex.Message);
+                return StatusCode(500, ex.Message);
             }
 
         }
 
-        [HttpPut]
+        /// <summary>
+        /// Modifier un produit
+        /// </summary>
+        /// <param name="product">Produit</param>
+        /// <returns></returns>
+        /// <response code="200">Le produit a été modifié</response>
+        /// <response code="404">Le produit n'existe pas</response>
+        /// <response code="500">Erreur serveur interne</response>
+        [ProducesResponseType(StatusCodes.Status201Created)]
+        [ProducesResponseType(StatusCodes.Status404NotFound)]
+        [ProducesResponseType(StatusCodes.Status500InternalServerError)]
         [Route("UpdateProduct")]
-        [SwaggerOperation(Summary = "Modifier un produit")]
-        [SwaggerResponse(StatusCodes.Status200OK, "Le produit a été modifié", typeof(Models.Product))]
-        [SwaggerResponse(StatusCodes.Status404NotFound, "Le produit n'existe pas", typeof(Models.Product))]
-        [SwaggerResponse(StatusCodes.Status400BadRequest, "La requête est invalide", typeof(ValidationProblemDetails))]
+        [HttpPut]
         public async Task<ActionResult> UpdateProduct(Models.Product product)
         {
             try 
@@ -247,16 +305,23 @@ namespace ProductApi.Controllers
             }
             catch(Exception ex) 
             { 
-                return BadRequest(ex.Message);
+                return StatusCode(500, ex.Message);
             }
         }
 
-        [HttpDelete]
+        /// <summary>
+        /// Supprimer un produit
+        /// </summary>
+        /// <param name="id">ID du Produit</param>
+        /// <returns></returns>
+        /// <response code="200">Le produit a été supprimé</response>
+        /// <response code="404">Le produit n'existe pas</response>
+        /// <response code="500">Erreur serveur interne</response>
+        [ProducesResponseType(StatusCodes.Status201Created)]
+        [ProducesResponseType(StatusCodes.Status404NotFound)]
+        [ProducesResponseType(StatusCodes.Status500InternalServerError)]
         [Route("DeleteProduct/{id}")]
-        [SwaggerOperation(Summary = "Supprimer un produit")]
-        [SwaggerResponse(StatusCodes.Status200OK, "Le produit a été supprimé", typeof(Models.Product))]
-        [SwaggerResponse(StatusCodes.Status404NotFound, "Le produit n'existe pas", typeof(Models.Product))]
-        [SwaggerResponse(StatusCodes.Status400BadRequest, "La requête est invalide", typeof(ValidationProblemDetails))]
+        [HttpDelete]
         public async Task<ActionResult> DeleteProduct([SwaggerParameter("ID du produit")] int id)
         {
             try
@@ -273,16 +338,23 @@ namespace ProductApi.Controllers
             }
             catch (Exception ex)
             {
-                return BadRequest(ex.Message);
+                return StatusCode(500, ex.Message);
             }
         }
 
-        [HttpDelete]
+        /// <summary>
+        /// Supprimer les produits au painer d'un client
+        /// </summary>
+        /// <param name="id">ID du client</param>
+        /// <returns></returns>
+        /// <response code="200">Les produits ont été supprimés du panier</response>
+        /// <response code="404">Le client n'existe pas</response>
+        /// <response code="500">Erreur serveur interne</response>
+        [ProducesResponseType(StatusCodes.Status200OK)]
+        [ProducesResponseType(StatusCodes.Status404NotFound)]
+        [ProducesResponseType(StatusCodes.Status500InternalServerError)]
         [Route("ClearCartProducts/{id}")]
-        [SwaggerOperation(Summary = "Supprimer les produits au painer d'un client")]
-        [SwaggerResponse(StatusCodes.Status200OK, "Les produits ont été supprimés du panier")]
-        [SwaggerResponse(StatusCodes.Status404NotFound, "Le client n'existe pas")]
-        [SwaggerResponse(StatusCodes.Status400BadRequest, "La requête est invalide", typeof(ValidationProblemDetails))]
+        [HttpDelete]
         public async Task<ActionResult> ClearCartProducts([SwaggerParameter("ID du client")] int id)
         {
             try
@@ -302,7 +374,7 @@ namespace ProductApi.Controllers
             }
             catch (Exception ex)
             {
-                return BadRequest(ex.Message);
+                return StatusCode(500, ex.Message);
             }
         }
 
