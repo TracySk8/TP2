@@ -1,4 +1,5 @@
 using ClientApi;
+using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.EntityFrameworkCore;
 
 var builder = WebApplication.CreateBuilder(args);
@@ -18,6 +19,8 @@ builder.Services.AddDbContext<ClientDBContext>(options =>
     options.UseSqlServer(builder.Configuration.GetConnectionString("SqlServer"));
     options.EnableSensitiveDataLogging();
 });
+
+//builder.Services.AddAuthorization().AddJwtBearer()
 
 var app = builder.Build();
 
