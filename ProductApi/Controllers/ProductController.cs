@@ -22,7 +22,7 @@ namespace ProductApi.Controllers
         [SwaggerResponse(StatusCodes.Status200OK, "Le produit a été trouvé", typeof(Product))]
         [SwaggerResponse(StatusCodes.Status404NotFound, "Le produit n'existe pas", typeof(ValidationProblemDetails))]
         [SwaggerResponse(StatusCodes.Status400BadRequest, "La requête est invalide", typeof(ValidationProblemDetails))]
-        public async Task<ActionResult<Product>> GetProduct([SwaggerParameter("ID du produit")] int id)
+        public async Task<ActionResult<Product>> GetProduct(int id)
         {
             try
             {
@@ -36,6 +36,29 @@ namespace ProductApi.Controllers
             catch (Exception ex)
             {
                 return BadRequest(ex.Message);
+            }
+        }
+
+        [HttpPost]
+        [Route("GetProductsById")]
+        [SwaggerOperation(Summary = "Obtenir plusieurs produits")]
+        [SwaggerResponse(StatusCodes.Status200OK, "Les produits ont été trouvés", typeof(Product))]
+        [SwaggerResponse(StatusCodes.Status404NotFound, "Les produits n'existent pas", typeof(ValidationProblemDetails))]
+        [SwaggerResponse(StatusCodes.Status500InternalServerError, "La requête est invalide", typeof(ValidationProblemDetails))]
+        public async Task<ActionResult<List<Product>>> GetProductsById([FromBody] int[] id)
+        {
+            try
+            {
+                List<Product> lstProducts = await _dbContext.Product.Where(c => id.Contains(c.ProductId)).ToListAsync();
+
+                if (lstProducts.Count == 0)
+                    return NotFound();
+
+                return Ok(lstProducts);
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(StatusCodes.Status500InternalServerError, ex.Message);
             }
         }
 
