@@ -1,5 +1,4 @@
-﻿using ClientApi.Models;
-using Microsoft.AspNetCore.Mvc;
+﻿using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using ProductApi.Classes;
 using ProductApi.Models;
