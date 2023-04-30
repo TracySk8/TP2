@@ -203,31 +203,7 @@ namespace OrderApi.Controllers
             {
                 // Set your secret key. Remember to switch to your live secret key in production.
                 // See your keys here: https://dashboard.stripe.com/apikeys
-                StripeConfiguration.ApiKey = "sk_test_51N2RC7IqRYm380CMGVdsBlJd8b10SjrX7EHP9OrzEP51LNdEHHBa493d0Z8QR1GOqYPtZfJGZHNblulpxp2dWgBb000D1B2HAV";
-
-
-                //Créer un produit dans stripe
-                var optionsProduct = new ProductCreateOptions
-                {
-                    Name = "Starter Subscription",
-                    Description = "$12/Month subscription",
-                };
-                var serviceProduct = new ProductService();
-                Stripe.Product product = await serviceProduct.CreateAsync(optionsProduct);
-
-                //Price
-                var optionsPrice = new PriceCreateOptions
-                {
-                    UnitAmount = 1200,
-                    Currency = "usd",
-                    Recurring = new PriceRecurringOptions
-                    {
-                        Interval = "month",
-                    },
-                    Product = product.Id
-                };
-                var servicePrice = new PriceService();
-                Price price = await servicePrice.CreateAsync(optionsPrice);
+                
 
                 //Payment intent
                 var options = new PaymentIntentCreateOptions
