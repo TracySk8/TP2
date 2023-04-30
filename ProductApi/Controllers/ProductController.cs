@@ -2,7 +2,9 @@
 using Microsoft.EntityFrameworkCore;
 using ProductApi.Classes;
 using ProductApi.Models;
+using Stripe;
 using Swashbuckle.AspNetCore.Annotations;
+using System;
 
 namespace ProductApi.Controllers
 {
@@ -19,10 +21,10 @@ namespace ProductApi.Controllers
         [HttpGet]
         [Route("GetProduct/{id}")]
         [SwaggerOperation(Summary = "Obtenir un produit")]
-        [SwaggerResponse(StatusCodes.Status200OK, "Le produit a été trouvé", typeof(Product))]
+        [SwaggerResponse(StatusCodes.Status200OK, "Le produit a été trouvé", typeof(Models.Product))]
         [SwaggerResponse(StatusCodes.Status404NotFound, "Le produit n'existe pas", typeof(ValidationProblemDetails))]
         [SwaggerResponse(StatusCodes.Status400BadRequest, "La requête est invalide", typeof(ValidationProblemDetails))]
-        public async Task<ActionResult<Product>> GetProduct(int id)
+        public async Task<ActionResult<Models.Product>> GetProduct(int id)
         {
             try
             {
@@ -42,14 +44,14 @@ namespace ProductApi.Controllers
         [HttpPost]
         [Route("GetProductsById")]
         [SwaggerOperation(Summary = "Obtenir plusieurs produits")]
-        [SwaggerResponse(StatusCodes.Status200OK, "Les produits ont été trouvés", typeof(Product))]
+        [SwaggerResponse(StatusCodes.Status200OK, "Les produits ont été trouvés", typeof(Models.Product))]
         [SwaggerResponse(StatusCodes.Status404NotFound, "Les produits n'existent pas", typeof(ValidationProblemDetails))]
         [SwaggerResponse(StatusCodes.Status500InternalServerError, "La requête est invalide", typeof(ValidationProblemDetails))]
-        public async Task<ActionResult<List<Product>>> GetProductsById([FromBody] int[] id)
+        public async Task<ActionResult<List<Models.Product>>> GetProductsById([FromBody] int[] id)
         {
             try
             {
-                List<Product> lstProducts = await _dbContext.Product.Where(c => id.Contains(c.ProductId)).ToListAsync();
+                List<Models.Product> lstProducts = await _dbContext.Product.Where(c => id.Contains(c.ProductId)).ToListAsync();
 
                 if (lstProducts.Count == 0)
                     return NotFound();
@@ -75,7 +77,6 @@ namespace ProductApi.Controllers
             {
                 if (ClientExists(id).Result == false)
                     return NotFound("Le client n'existe pas");
-
 
                 var products = await _dbContext.CartProduct
                     .Include(x => x.Product)
@@ -151,10 +152,10 @@ namespace ProductApi.Controllers
         [HttpGet]
         [Route("GetSellerProducts/{id}")]
         [SwaggerOperation(Summary = "Obtenir les produits d'un vendeur")]
-        [SwaggerResponse(StatusCodes.Status200OK, "Les produits ont été trouvés", typeof(List<Product>))]
+        [SwaggerResponse(StatusCodes.Status200OK, "Les produits ont été trouvés", typeof(List<Models.Product>))]
         [SwaggerResponse(StatusCodes.Status400BadRequest, "La requête est invalide", typeof(ValidationProblemDetails))]
         [SwaggerResponse(StatusCodes.Status404NotFound, "Le vendeur n'existe pas", typeof(ValidationProblemDetails))]
-        public async Task<ActionResult<List<Product>>> GetSellerProducts([SwaggerParameter("ID du vendeur")] int id)
+        public async Task<ActionResult<List<Models.Product>>> GetSellerProducts([SwaggerParameter("ID du vendeur")] int id)
         {
             try
             {
@@ -162,7 +163,7 @@ namespace ProductApi.Controllers
                 //if (seller == null)
                 //    return NotFound();
 
-                List<Product> products = await _dbContext.Product.Where(c => c.SellerId == id).ToListAsync();
+                List<Models.Product> products = await _dbContext.Product.Where(c => c.SellerId == id).ToListAsync();
 
                 return Ok(products);
             }
@@ -175,14 +176,36 @@ namespace ProductApi.Controllers
         [HttpPost]
         [Route("AddProduct")]
         [SwaggerOperation(Summary = "Ajouter un nouveau produit")]
-        [SwaggerResponse(StatusCodes.Status201Created, "Le produit a été créé", typeof(Product))]
+        [SwaggerResponse(StatusCodes.Status201Created, "Le produit a été créé", typeof(Models.Product))]
         [SwaggerResponse(StatusCodes.Status400BadRequest, "La requête est invalide", typeof(ValidationProblemDetails))]
-        public async Task<ActionResult> AddProduct(Product product)
+        public async Task<ActionResult> AddProduct(Models.Product product)
         {
             try 
             { 
                 await _dbContext.Product.AddAsync(product);
                 await _dbContext.SaveChangesAsync();
+
+                StripeConfiguration.ApiKey = "sk_test_51N2RC7IqRYm380CMGVdsBlJd8b10SjrX7EHP9OrzEP51LNdEHHBa493d0Z8QR1GOqYPtZfJGZHNblulpxp2dWgBb000D1B2HAV";
+
+                //Créer le produit dans Stripe
+                var optionsProduct = new ProductCreateOptions
+                {
+                    Name = product.ProductTitle,
+                    Description = product.Usage
+                };
+                var serviceProduct = new ProductService();
+                Stripe.Product stripeProduct = await serviceProduct.CreateAsync(optionsProduct);
+
+                //Y ajoute un prix
+                var optionsPrice = new PriceCreateOptions
+                {
+                    UnitAmount = (long)(product.Price * 100),
+                    Currency = "cad",
+                    Product = stripeProduct.Id
+                };
+                var servicePrice = new PriceService();
+                Price price = await servicePrice.CreateAsync(optionsPrice);
+
                 return StatusCode(201, product);
             }
             catch(Exception ex) 
@@ -195,14 +218,14 @@ namespace ProductApi.Controllers
         [HttpPut]
         [Route("UpdateProduct")]
         [SwaggerOperation(Summary = "Modifier un produit")]
-        [SwaggerResponse(StatusCodes.Status200OK, "Le produit a été modifié", typeof(Product))]
-        [SwaggerResponse(StatusCodes.Status404NotFound, "Le produit n'existe pas", typeof(Product))]
+        [SwaggerResponse(StatusCodes.Status200OK, "Le produit a été modifié", typeof(Models.Product))]
+        [SwaggerResponse(StatusCodes.Status404NotFound, "Le produit n'existe pas", typeof(Models.Product))]
         [SwaggerResponse(StatusCodes.Status400BadRequest, "La requête est invalide", typeof(ValidationProblemDetails))]
-        public async Task<ActionResult> UpdateProduct(Product product)
+        public async Task<ActionResult> UpdateProduct(Models.Product product)
         {
             try 
             {
-                Product? productDb = await _dbContext.Product.FindAsync(product.ProductId);
+                Models.Product? productDb = await _dbContext.Product.FindAsync(product.ProductId);
 
                 if (productDb == null)
                 {
@@ -231,14 +254,14 @@ namespace ProductApi.Controllers
         [HttpDelete]
         [Route("DeleteProduct/{id}")]
         [SwaggerOperation(Summary = "Supprimer un produit")]
-        [SwaggerResponse(StatusCodes.Status200OK, "Le produit a été supprimé", typeof(Product))]
-        [SwaggerResponse(StatusCodes.Status404NotFound, "Le produit n'existe pas", typeof(Product))]
+        [SwaggerResponse(StatusCodes.Status200OK, "Le produit a été supprimé", typeof(Models.Product))]
+        [SwaggerResponse(StatusCodes.Status404NotFound, "Le produit n'existe pas", typeof(Models.Product))]
         [SwaggerResponse(StatusCodes.Status400BadRequest, "La requête est invalide", typeof(ValidationProblemDetails))]
         public async Task<ActionResult> DeleteProduct([SwaggerParameter("ID du produit")] int id)
         {
             try
             {
-                Product? product = await _dbContext.Product.FindAsync(id);
+                Models.Product? product = await _dbContext.Product.FindAsync(id);
 
                 if (product == null)
                     return NotFound();

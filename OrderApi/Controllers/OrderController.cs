@@ -4,6 +4,7 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using OrderApi.Classes;
 using OrderApi.Models;
+using Stripe;
 using Swashbuckle.AspNetCore.Annotations;
 using System.Text.Json;
 
@@ -89,11 +90,11 @@ namespace OrderApi.Controllers
                 if (responseProduct.IsSuccessStatusCode == false)
                     return StatusCode(StatusCodes.Status500InternalServerError, "Erreur lors de l'appel de ProductApi.");
 
-                List<Product>? lstProducts = await responseProduct.Content.ReadFromJsonAsync<List<Product>>();
+                List<Classes.Product>? lstProducts = await responseProduct.Content.ReadFromJsonAsync<List<Classes.Product>>();
 
                 //Crée une liste contenant les produits et leur quantité
                 List<ProductAndQuantity> lstReceiptProducts = new List<ProductAndQuantity>();
-                foreach (Product product in lstProducts)
+                foreach (Classes.Product product in lstProducts)
                 {
                     int quantity = lstItems.Where(c => c.ProductId == product.ProductId).Select(c => c.Quantity).FirstOrDefault();
                     lstReceiptProducts.Add(new ProductAndQuantity(product, quantity));
@@ -146,7 +147,7 @@ namespace OrderApi.Controllers
                 //Crée la facture
                 const double TPS = 0.05;
                 const double TVQ = 0.09975;
-                const double TAXES = 0.014975;
+                const double TAXES = 1.014975;
 
                 double subTotal = 0;
                 List<ReceiptItem> lstReceiptItems = new List<ReceiptItem>();
@@ -180,12 +181,76 @@ namespace OrderApi.Controllers
 
                 await _dbContext.AddRangeAsync(lstReceiptItems);
                 await _dbContext.SaveChangesAsync();
+
+                //Supprime les éléments du panier du client
+                var response = await _httpClient.DeleteAsync($"http://localhost:5000/api/product/ClearCartProducts/{clientId}");
+
+                if(!response.IsSuccessStatusCode)
+                    return StatusCode(StatusCodes.Status500InternalServerError, "Erreur lors du ménage du panier");
             }
             catch (Exception ex)
             {
                 return StatusCode(StatusCodes.Status500InternalServerError, ex.Message);
             }
             return Ok(); 
+        }
+
+        [Route("Payment")]
+        [HttpPost]
+        public async Task<ActionResult> Payment()
+        {
+            try
+            {
+                // Set your secret key. Remember to switch to your live secret key in production.
+                // See your keys here: https://dashboard.stripe.com/apikeys
+                StripeConfiguration.ApiKey = "sk_test_51N2RC7IqRYm380CMGVdsBlJd8b10SjrX7EHP9OrzEP51LNdEHHBa493d0Z8QR1GOqYPtZfJGZHNblulpxp2dWgBb000D1B2HAV";
+
+
+                //Créer un produit dans stripe
+                var optionsProduct = new ProductCreateOptions
+                {
+                    Name = "Starter Subscription",
+                    Description = "$12/Month subscription",
+                };
+                var serviceProduct = new ProductService();
+                Stripe.Product product = await serviceProduct.CreateAsync(optionsProduct);
+
+                //Price
+                var optionsPrice = new PriceCreateOptions
+                {
+                    UnitAmount = 1200,
+                    Currency = "usd",
+                    Recurring = new PriceRecurringOptions
+                    {
+                        Interval = "month",
+                    },
+                    Product = product.Id
+                };
+                var servicePrice = new PriceService();
+                Price price = await servicePrice.CreateAsync(optionsPrice);
+
+                //Payment intent
+                var options = new PaymentIntentCreateOptions
+                {
+                    Amount = 1000,
+                    Currency = "usd",
+                    PaymentMethodTypes = new List<string> { "card" },
+                
+                };
+
+                //var requestOptions = new RequestOptions();
+                //requestOptions.StripeAccount = "{{CONNECTED_ACCOUNT_ID}}";
+
+                //var service = new PaymentIntentService();
+                //await service.CreateAsync(options, requestOptions);
+
+                return Ok();
+
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, ex.Message);
+            }
         }
 
 
