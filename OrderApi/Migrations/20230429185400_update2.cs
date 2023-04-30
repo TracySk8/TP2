@@ -21,7 +21,7 @@ namespace OrderApi.Migrations
                     SubTotal = table.Column<double>(type: "float", nullable: false),
                     TPS = table.Column<double>(type: "float", nullable: false),
                     TVQ = table.Column<double>(type: "float", nullable: false),
-                    TotalCost = table.Column<decimal>(type: "decimal(18,2)", nullable: false),
+                    TotalCost = table.Column<double>(type: "float", nullable: false),
                     ClientId = table.Column<int>(type: "int", nullable: false)
                 },
                 constraints: table =>

@@ -112,8 +112,15 @@ namespace ProductApi.Controllers
         {
             try
             {
-                if (ClientExists(clientId).Result == false)
+                bool clientExists = await ClientExists(clientId);
+
+                if (!clientExists)
                     return NotFound("Le client n'existe pas");
+
+                bool productExists = await _dbContext.Product.FindAsync(productId) != null;
+
+                if (!productExists)
+                    return NotFound();
 
                 CartProduct? cartProduct = await _dbContext.CartProduct
                 .Where(c => c.ClientId == clientId)
@@ -311,7 +318,7 @@ namespace ProductApi.Controllers
             HttpClient httpClient = new HttpClient();
 
             //TODO changer pour la passerelle quand fonctionnelle
-            HttpResponseMessage response = await httpClient.GetAsync($"http://localhost:5001/Client/GetClient/{clientId}");
+            HttpResponseMessage response = await httpClient.GetAsync($"http://localhost:5000/api/client/GetClient/{clientId}");
 
             return response.IsSuccessStatusCode;
         }

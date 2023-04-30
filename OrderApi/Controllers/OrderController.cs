@@ -5,8 +5,6 @@ using Microsoft.EntityFrameworkCore;
 using OrderApi.Classes;
 using OrderApi.Models;
 using Stripe;
-using Swashbuckle.AspNetCore.Annotations;
-using System.Text.Json;
 
 namespace OrderApi.Controllers
 {
@@ -153,7 +151,7 @@ namespace OrderApi.Controllers
                 List<ReceiptItem> lstReceiptItems = new List<ReceiptItem>();
                 foreach (var item in lstCartProducts)
                 {
-                    subTotal += item.Product.Price;
+                    subTotal += item.Product.Price * item.Quantity;
                     ReceiptItem receiptItem = new ReceiptItem()
                     { 
                         ProductId = item.Product.ProductId,
@@ -166,9 +164,9 @@ namespace OrderApi.Controllers
                 Receipt receipt = new Receipt()
                 {
                     PurchaseDate = DateTime.Now,
-                    SubTotal = subTotal,
-                    TPS = subTotal * TPS,
-                    TVQ = subTotal * TVQ,
+                    SubTotal = Math.Round(subTotal, 2),
+                    TPS = Math.Round(subTotal * TPS, 2),
+                    TVQ = Math.Round(subTotal * TVQ, 2),
                     TotalCost = subTotal * TAXES,
                     ClientId = clientId
                 };
@@ -187,38 +185,45 @@ namespace OrderApi.Controllers
 
                 if(!response.IsSuccessStatusCode)
                     return StatusCode(StatusCodes.Status500InternalServerError, "Erreur lors du ménage du panier");
+
+                return Ok();
             }
             catch (Exception ex)
             {
                 return StatusCode(StatusCodes.Status500InternalServerError, ex.Message);
             }
-            return Ok(); 
         }
 
+        /// <summary>
+        /// Effectuer un paiement
+        /// </summary>
+        /// <returns></returns>
+        /// <response code="200">Le paiement a été effectué</response>
+        /// <response code="404">Le client n'existe pas</response>
+        /// <response code="500">Erreur serveur interne</response>
+        [ProducesResponseType(StatusCodes.Status200OK)]
+        [ProducesResponseType(StatusCodes.Status404NotFound)]
+        [ProducesResponseType(StatusCodes.Status500InternalServerError)]
         [Route("Payment")]
         [HttpPost]
         public async Task<ActionResult> Payment()
         {
             try
             {
-                // Set your secret key. Remember to switch to your live secret key in production.
-                // See your keys here: https://dashboard.stripe.com/apikeys
-                
+                StripeConfiguration.ApiKey = "sk_test_51N2RC7IqRYm380CMGVdsBlJd8b10SjrX7EHP9OrzEP51LNdEHHBa493d0Z8QR1GOqYPtZfJGZHNblulpxp2dWgBb000D1B2HAV";
 
                 //Payment intent
                 var options = new PaymentIntentCreateOptions
                 {
                     Amount = 1000,
-                    Currency = "usd",
-                    PaymentMethodTypes = new List<string> { "card" },
-                
+                    Currency = "cad",
+                    PaymentMethodTypes = new List<string> { "card_present" },
+                    CaptureMethod = "automatic",
+                    Customer = "cus_NoK1Vz59yCvt6g"
                 };
 
-                //var requestOptions = new RequestOptions();
-                //requestOptions.StripeAccount = "{{CONNECTED_ACCOUNT_ID}}";
-
-                //var service = new PaymentIntentService();
-                //await service.CreateAsync(options, requestOptions);
+                var service = new PaymentIntentService();
+                await service.CreateAsync(options);
 
                 return Ok();
 
@@ -228,7 +233,6 @@ namespace OrderApi.Controllers
                 return StatusCode(500, ex.Message);
             }
         }
-
 
 
         private async Task<bool> ClientExists(int clientId)
