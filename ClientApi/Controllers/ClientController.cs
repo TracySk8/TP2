@@ -10,6 +10,7 @@ namespace ClientApi.Controllers
 {
     [ApiController]
     [Route("api/[controller]")]
+    [Produces("application/json")]
     public class ClientController : ControllerBase
     {
         private ClientDBContext _dbContext;

@@ -220,9 +220,11 @@ namespace ProductApi.Controllers
         /// <param name="product">Produit</param>
         /// <returns>Le produit</returns>
         /// <response code="201">Le produit a été créé</response>
+        /// <response code="400">Requête invalide</response>
         /// <response code="404">Le vendeur n'existe pas</response>
         /// <response code="500">Erreur serveur interne</response>
         [ProducesResponseType(StatusCodes.Status201Created)]
+        [ProducesResponseType(StatusCodes.Status400BadRequest)]
         [ProducesResponseType(StatusCodes.Status404NotFound)]
         [ProducesResponseType(StatusCodes.Status500InternalServerError)]
         [Route("AddProduct")]
@@ -230,8 +232,12 @@ namespace ProductApi.Controllers
         public async Task<ActionResult> AddProduct(Models.Product product)
         {
             try 
-            { 
+            {
                 //Vérifier si le vendeur existe
+                bool sellerExists = await SellerExists(product.SellerId);
+                if (!sellerExists) {
+                    return BadRequest("Vendeur introuvable");
+                }
 
                 await _dbContext.Product.AddAsync(product);
                 await _dbContext.SaveChangesAsync();
@@ -384,10 +390,17 @@ namespace ProductApi.Controllers
 
             HttpResponseMessage response = await httpClient.GetAsync($"http://localhost:5000/api/Client/GetClient/{clientId}");
 
-            //Client? client = await httpClient.GetFromJsonAsync<ClientApi.Models.Client>($"http://localhost:5000/api/Client/GetClient/{clientId}");
+            return response.IsSuccessStatusCode;
+        }
+        private async Task<bool> SellerExists(int sellerId)
+        {
+            HttpClient httpClient = new HttpClient();
 
+            HttpResponseMessage response = await httpClient.GetAsync($"http://localhost:5000/api/Seller/GetSeller/{sellerId}");
 
             return response.IsSuccessStatusCode;
         }
+
+
     }
 }

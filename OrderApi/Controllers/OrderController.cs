@@ -187,13 +187,15 @@ namespace OrderApi.Controllers
 
                 if(!response.IsSuccessStatusCode)
                     return StatusCode(StatusCodes.Status500InternalServerError, "Erreur lors du ménage du panier");
+
+                return Ok();
             }
             catch (Exception ex)
             {
                 return StatusCode(StatusCodes.Status500InternalServerError, ex.Message);
             }
-            return Ok(); 
         }
+
 
         [Route("Payment")]
         [HttpPost]
