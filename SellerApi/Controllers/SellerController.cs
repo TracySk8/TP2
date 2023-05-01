@@ -33,7 +33,7 @@ namespace SellerApi.Controllers
         [SwaggerResponse(StatusCodes.Status200OK, "Le Seller a été trouvé", typeof(Seller))]
         [SwaggerResponse(StatusCodes.Status404NotFound, "Le Seller n'existe pas", typeof(ValidationProblemDetails))]
         [SwaggerResponse(StatusCodes.Status400BadRequest, "La requête est invalide", typeof(ValidationProblemDetails))]
-        public async Task<ActionResult<Seller>> GetClient([SwaggerParameter("ID du Seller")] int id)
+        public async Task<ActionResult<Seller>> GetSeller([SwaggerParameter("ID du Seller")] int id)
         {
             try
             {
@@ -56,7 +56,7 @@ namespace SellerApi.Controllers
         [SwaggerOperation(Summary = "Ajouter un nouveau Seller")]
         [SwaggerResponse(StatusCodes.Status201Created, "Le Seller a été créé", typeof(Seller))]
         [SwaggerResponse(StatusCodes.Status400BadRequest, "La requête est invalide", typeof(ValidationProblemDetails))]
-        public async Task<ActionResult<Seller>> AddClient(SellerCreation seller)
+        public async Task<ActionResult<Seller>> AddSeller(SellerCreation seller)
         {
             try
             {
@@ -116,16 +116,16 @@ namespace SellerApi.Controllers
         [SwaggerResponse(StatusCodes.Status200OK, "La connexion a été autorisée")]
         [SwaggerResponse(StatusCodes.Status400BadRequest, "La requête est invalide", typeof(ValidationProblemDetails))]
         [SwaggerResponse(StatusCodes.Status404NotFound, "Le Seller n'existe pas")]
-        public async Task<ActionResult> ConnectClient(string username, string password)
+        public async Task<ActionResult> ConnectSeller(string username, string password)
         {
             try
             {
-                Seller? clientDb = await _dbContext.Seller.Where(c => c.Username == username).FirstOrDefaultAsync();
+                Seller? sellerDb = await _dbContext.Seller.Where(c => c.Username == username).FirstOrDefaultAsync();
 
-                if (clientDb == null)
+                if (sellerDb == null)
                     return BadRequest("Cet usager n'existe pas.");
 
-                if (CheckPassword(clientDb.Id, password))
+                if (CheckPassword(sellerDb.Id, password))
                     return Ok(password); //retourner un jsonWebToken
 
                 return BadRequest("Mot de passe eronné.");
@@ -143,7 +143,7 @@ namespace SellerApi.Controllers
         [SwaggerResponse(StatusCodes.Status200OK, "Les statistiques ont été trouvées", typeof(Seller))]
         [SwaggerResponse(StatusCodes.Status400BadRequest, "La requête est invalide", typeof(ValidationProblemDetails))]
         [SwaggerResponse(StatusCodes.Status404NotFound, "Le vendeur n'existe pas")]
-        public async Task<ActionResult<SellerStats>> GetClientStats([SwaggerParameter("ID du seller")] int id) //id du Seller
+        public async Task<ActionResult<SellerStats>> GetSellerStats([SwaggerParameter("ID du seller")] int id) //id du Seller
         {
             try
             {
@@ -196,7 +196,7 @@ namespace SellerApi.Controllers
         [SwaggerResponse(StatusCodes.Status200OK, "Le seller a été modifié", typeof(Seller))]
         [SwaggerResponse(StatusCodes.Status400BadRequest, "La requête est invalide", typeof(ValidationProblemDetails))]
         [SwaggerResponse(StatusCodes.Status404NotFound, "Le Seller n'existe pas")]
-        public async Task<ActionResult<Seller>> UpdateClient(Seller seller)
+        public async Task<ActionResult<Seller>> UpdateSeller(Seller seller)
         {
             try
             {

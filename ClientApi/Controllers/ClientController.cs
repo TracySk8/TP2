@@ -18,12 +18,19 @@ namespace ClientApi.Controllers
             _dbContext = context;
         }
 
-        [HttpGet]
+        /// <summary>
+        /// Obtenir un client
+        /// </summary>
+        /// <param name="id">ID du client.</param>
+        /// <returns>Un client</returns>
+        /// <response code="200">Client trouvé</response>
+        /// <response code="404">Le client n'existe pas</response>
+        /// <response code="500">Erreur serveur interne</response>
+        [ProducesResponseType(StatusCodes.Status200OK)]
+        [ProducesResponseType(StatusCodes.Status404NotFound)]
+        [ProducesResponseType(StatusCodes.Status500InternalServerError)]
         [Route("GetClient/{id}")]
-        [SwaggerOperation(Summary = "Obtenir un client")]
-        [SwaggerResponse(StatusCodes.Status200OK, "Le client a été trouvé", typeof(Client))]
-        [SwaggerResponse(StatusCodes.Status404NotFound, "Le client n'existe pas", typeof(ValidationProblemDetails))]
-        [SwaggerResponse(StatusCodes.Status400BadRequest, "La requête est invalide", typeof(ValidationProblemDetails))]
+        [HttpGet]
         public async Task<ActionResult<Client>> GetClient([SwaggerParameter("ID du client")] int id)
         {
             try
@@ -37,15 +44,23 @@ namespace ClientApi.Controllers
             }
             catch (Exception ex)
             {
-                return BadRequest(ex.Message);
+                return StatusCode(500, ex.Message);
             }
         }
 
-        [HttpPost]
+        /// <summary>
+        /// Ajouter un nouveau client
+        /// </summary>
+        /// <param name="client">Client</param>
+        /// <returns></returns>
+        /// <response code="201">Le client a été ajouté</response>
+        /// <response code="400">Requête invalide</response>
+        /// <response code="500">Erreur serveur interne</response>
+        [ProducesResponseType(StatusCodes.Status200OK)]
+        [ProducesResponseType(StatusCodes.Status400BadRequest)]
+        [ProducesResponseType(StatusCodes.Status500InternalServerError)]
         [Route("AddClient")]
-        [SwaggerOperation(Summary = "Ajouter un nouveau client")]
-        [SwaggerResponse(StatusCodes.Status201Created, "Le client a été créé", typeof(Client))]
-        [SwaggerResponse(StatusCodes.Status400BadRequest, "La requête est invalide", typeof(ValidationProblemDetails))]
+        [HttpPost]
         public async Task<ActionResult<Client>> AddClient(ClientCreation client) 
         {
             try 
@@ -95,16 +110,26 @@ namespace ClientApi.Controllers
             }
             catch (Exception ex)
             {
-                return BadRequest(ex.Message);
+                return StatusCode(500, ex.Message);
             }
         }
 
-        [HttpPost]
+        /// <summary>
+        /// Connecter un client
+        /// </summary>
+        /// <param name="username">Nom d'usager</param>
+        /// <param name="password">Mot de passe</param>
+        /// <returns></returns>
+        /// <response code="200">La connexion a été autorisée</response>
+        /// <response code="400">Requête invalide</response>
+        /// <response code="404">Cet usager n'existe pas</response>
+        /// <response code="500">Erreur serveur interne</response>
+        [ProducesResponseType(StatusCodes.Status200OK)]
+        [ProducesResponseType(StatusCodes.Status400BadRequest)]
+        [ProducesResponseType(StatusCodes.Status404NotFound)]
+        [ProducesResponseType(StatusCodes.Status500InternalServerError)]
         [Route("ConnectClient")]
-        [SwaggerOperation(Summary = "Connecter un client")]
-        [SwaggerResponse(StatusCodes.Status200OK, "La connexion a été autorisée")]
-        [SwaggerResponse(StatusCodes.Status400BadRequest, "La requête est invalide", typeof(ValidationProblemDetails))]
-        [SwaggerResponse(StatusCodes.Status404NotFound, "Le client n'existe pas")]
+        [HttpPost]
         public async Task<ActionResult> ConnectClient(string username, string password)
         {
             try
@@ -112,7 +137,7 @@ namespace ClientApi.Controllers
                 Client? clientDb = await _dbContext.Client.Where(c => c.Username == username).FirstOrDefaultAsync();
 
                 if (clientDb == null)
-                    return BadRequest("Cet usager n'existe pas.");
+                    return NotFound("Cet usager n'existe pas.");
 
                 if (CheckPassword(clientDb.Id, password))
                     return Ok(password); //retourner un jsonWebToken
@@ -144,12 +169,20 @@ namespace ClientApi.Controllers
             }
         }
 
-        [HttpPut]
+        /// <summary>
+        /// Modifier un client
+        /// </summary>
+        /// <param name="client">Client</param>
+        /// <returns></returns>
+        /// <response code="200">Le client a été modifié</response>
+        /// <response code="404">Le client n'existe pas/response>
+        /// <response code="500">Erreur serveur interne</response>
+        [ProducesResponseType(StatusCodes.Status200OK)]
+        [ProducesResponseType(StatusCodes.Status400BadRequest)]
+        [ProducesResponseType(StatusCodes.Status404NotFound)]
+        [ProducesResponseType(StatusCodes.Status500InternalServerError)]
         [Route("UpdateClient")]
-        [SwaggerOperation(Summary = "Modifier un client")]
-        [SwaggerResponse(StatusCodes.Status200OK, "Le client a été modifié", typeof(Client))]
-        [SwaggerResponse(StatusCodes.Status400BadRequest, "La requête est invalide", typeof(ValidationProblemDetails))]
-        [SwaggerResponse(StatusCodes.Status404NotFound, "Le client n'existe pas")]
+        [HttpPut]
         public async Task<ActionResult<Client>> UpdateClient(Client client) 
         {
             try 
@@ -168,16 +201,23 @@ namespace ClientApi.Controllers
             }
             catch (Exception ex)
             {
-                return BadRequest(ex.Message);
+                return StatusCode(500, ex.Message);
             }
         }
 
-        [HttpGet]
+        /// <summary>
+        /// Obtenir les statistiques d'un client
+        /// </summary>
+        /// <param name="id">ID du client</param>
+        /// <returns>Statistiques du client</returns>
+        /// <response code="200">Obtenir les statistiques d'un client</response>
+        /// <response code="404">Le client n'existe pas</response>
+        /// <response code="500">Erreur serveur interne</response>
+        [ProducesResponseType(StatusCodes.Status200OK)]
+        [ProducesResponseType(StatusCodes.Status404NotFound)]
+        [ProducesResponseType(StatusCodes.Status500InternalServerError)]
         [Route("GetClientStats/{id}")]
-        [SwaggerOperation(Summary = "Obtenir les statistiques d'un client")]
-        [SwaggerResponse(StatusCodes.Status200OK, "Les statistiques ont été trouvées", typeof(Client))]
-        [SwaggerResponse(StatusCodes.Status400BadRequest, "La requête est invalide", typeof(ValidationProblemDetails))]
-        [SwaggerResponse(StatusCodes.Status404NotFound, "Le client n'existe pas")]
+        [HttpGet]
         public async Task<ActionResult<ClientStats>> GetClientStats([SwaggerParameter("ID du client")] int id) //id du client
         {
             try 
@@ -195,12 +235,19 @@ namespace ClientApi.Controllers
             }
         }
 
-        [HttpPut]
+        /// <summary>
+        /// Modifier les statistiques d'un client
+        /// </summary>
+        /// <param name="id">ID du client</param>
+        /// <returns>Statistiques du client</returns>
+        /// <response code="201">Les statistiques ont été modifiées</response>
+        /// <response code="404">Le client n'existe pas</response>
+        /// <response code="500">Erreur serveur interne</response>
+        [ProducesResponseType(StatusCodes.Status200OK)]
+        [ProducesResponseType(StatusCodes.Status404NotFound)]
+        [ProducesResponseType(StatusCodes.Status500InternalServerError)]
         [Route("UpdateClientStats")]
-        [SwaggerOperation(Summary = "Modifier les statistiques d'un client")]
-        [SwaggerResponse(StatusCodes.Status200OK, "Les statistiques ont été modifiées", typeof(ClientStats))]
-        [SwaggerResponse(StatusCodes.Status400BadRequest, "La requête est invalide", typeof(ValidationProblemDetails))]
-        [SwaggerResponse(StatusCodes.Status404NotFound, "Le client n'existe pas")]
+        [HttpPut]
         public async Task<ActionResult<ClientStats>> UpdateClientStats(ClientStats clientStats)
         {
             try 
@@ -214,7 +261,7 @@ namespace ClientApi.Controllers
                 stats.PurchasedItems = clientStats.PurchasedItems;
                 await _dbContext.SaveChangesAsync();
 
-                return Ok(stats);
+                return StatusCode(201, stats);
             }
             catch (Exception ex)
             {
@@ -222,12 +269,19 @@ namespace ClientApi.Controllers
             }
         }
 
-        [HttpDelete]
+        /// <summary>
+        /// Supprimer un client
+        /// </summary>
+        /// <param name="id">ID du client</param>
+        /// <returns></returns>
+        /// <response code="200">Le client a été supprimé</response>
+        /// <response code="404">Le client n'existe pas</response>
+        /// <response code="500">Erreur serveur interne</response>
+        [ProducesResponseType(StatusCodes.Status200OK)]
+        [ProducesResponseType(StatusCodes.Status404NotFound)]
+        [ProducesResponseType(StatusCodes.Status500InternalServerError)]
         [Route("DeleteClient/{id}")]
-        [SwaggerOperation(Summary = "Supprimer un client")]
-        [SwaggerResponse(StatusCodes.Status200OK, "Le client a été supprimé", typeof(ClientStats))]
-        [SwaggerResponse(StatusCodes.Status400BadRequest, "La requête est invalide", typeof(ValidationProblemDetails))]
-        [SwaggerResponse(StatusCodes.Status404NotFound, "Le client n'existe pas")]
+        [HttpDelete]
         public async Task<ActionResult<ClientStats>> DeleteClient(int id)
         {
             try
@@ -246,7 +300,7 @@ namespace ClientApi.Controllers
             }
             catch (Exception ex)
             {
-                return BadRequest(ex.Message);
+                return StatusCode(500, ex.Message);
             }
         }
 
