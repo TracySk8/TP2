@@ -175,7 +175,7 @@ namespace ClientApi.Controllers
         /// <param name="client">Client</param>
         /// <returns></returns>
         /// <response code="200">Le client a été modifié</response>
-        /// <response code="404">Le client n'existe pas/response>
+        /// <response code="404">Le client n'existe pas</response>
         /// <response code="500">Erreur serveur interne</response>
         [ProducesResponseType(StatusCodes.Status200OK)]
         [ProducesResponseType(StatusCodes.Status400BadRequest)]

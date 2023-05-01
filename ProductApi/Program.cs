@@ -18,7 +18,7 @@ builder.Services.AddSwaggerGen(options =>
     options.SwaggerDoc("v1", new OpenApiInfo
     {
         Version = "v1",
-        Title = "Product",
+        Title = "ProductApi",
         Description = "API Web permettant la gestion des produits"
     });
 

@@ -27,13 +27,20 @@ namespace SellerApi.Controllers
             _dbContext = context;
         }
 
-        [HttpGet]
+        /// <summary>
+        /// Obtenir un vendeur
+        /// </summary>
+        /// <param name="id">ID du vendeur</param>
+        /// <returns>Vendeur</returns>
+        /// <response code="200">Le vendeur a été trouvé</response>
+        /// <response code="404">Le vendeur n'existe pas</response>
+        /// <response code="500">Erreur serveur interne</response>
+        [ProducesResponseType(StatusCodes.Status200OK)]
+        [ProducesResponseType(StatusCodes.Status404NotFound)]
+        [ProducesResponseType(StatusCodes.Status500InternalServerError)]
         [Route("GetSeller/{id}")]
-        [SwaggerOperation(Summary = "Obtenir un Seller")]
-        [SwaggerResponse(StatusCodes.Status200OK, "Le Seller a été trouvé", typeof(Seller))]
-        [SwaggerResponse(StatusCodes.Status404NotFound, "Le Seller n'existe pas", typeof(ValidationProblemDetails))]
-        [SwaggerResponse(StatusCodes.Status400BadRequest, "La requête est invalide", typeof(ValidationProblemDetails))]
-        public async Task<ActionResult<Seller>> GetSeller([SwaggerParameter("ID du Seller")] int id)
+        [HttpGet]
+        public async Task<ActionResult<Seller>> GetSeller(int id)
         {
             try
             {
@@ -46,16 +53,24 @@ namespace SellerApi.Controllers
             }
             catch (Exception ex)
             {
-                return BadRequest(ex.Message);
+                return StatusCode(500, ex.Message);
             }
         }
 
 
-        [HttpPost]
+        /// <summary>
+        /// Ajouter un nouveau vendeur
+        /// </summary>
+        /// <param name="seller">Vendeur</param>
+        /// <returns>Le vendeur</returns>
+        /// <response code="200">Le vendeur a été créé</response>
+        /// <response code="400">Requête invalide</response>
+        /// <response code="500">Erreur serveur interne</response>
+        [ProducesResponseType(StatusCodes.Status200OK)]
+        [ProducesResponseType(StatusCodes.Status404NotFound)]
+        [ProducesResponseType(StatusCodes.Status500InternalServerError)]
         [Route("AddSeller")]
-        [SwaggerOperation(Summary = "Ajouter un nouveau Seller")]
-        [SwaggerResponse(StatusCodes.Status201Created, "Le Seller a été créé", typeof(Seller))]
-        [SwaggerResponse(StatusCodes.Status400BadRequest, "La requête est invalide", typeof(ValidationProblemDetails))]
+        [HttpPost]
         public async Task<ActionResult<Seller>> AddSeller(SellerCreation seller)
         {
             try
@@ -106,16 +121,26 @@ namespace SellerApi.Controllers
             }
             catch (Exception ex)
             {
-                return BadRequest(ex.Message);
+                return StatusCode(500, ex.Message);
             }
         }
 
-        [HttpPost]
+        /// <summary>
+        /// Connecter un vendeur
+        /// </summary>
+        /// <param name="username">Nom d'usager</param>
+        /// <param name="password">Mot de passe</param>
+        /// <returns>Un json Web token (JWT)</returns>
+        /// <response code="200">La connexion a été autorisée</response>
+        /// <response code="400">Requête invalide</response>
+        /// <response code="404">Usager inexistant</response>
+        /// <response code="500">Erreur serveur interne</response>
+        [ProducesResponseType(StatusCodes.Status200OK)]
+        [ProducesResponseType(StatusCodes.Status404NotFound)]
+        [ProducesResponseType(StatusCodes.Status400BadRequest)]
+        [ProducesResponseType(StatusCodes.Status500InternalServerError)]
         [Route("ConnectSeller")]
-        [SwaggerOperation(Summary = "Connecter un Seller")]
-        [SwaggerResponse(StatusCodes.Status200OK, "La connexion a été autorisée")]
-        [SwaggerResponse(StatusCodes.Status400BadRequest, "La requête est invalide", typeof(ValidationProblemDetails))]
-        [SwaggerResponse(StatusCodes.Status404NotFound, "Le Seller n'existe pas")]
+        [HttpPost]
         public async Task<ActionResult> ConnectSeller(string username, string password)
         {
             try
@@ -123,7 +148,7 @@ namespace SellerApi.Controllers
                 Seller? sellerDb = await _dbContext.Seller.Where(c => c.Username == username).FirstOrDefaultAsync();
 
                 if (sellerDb == null)
-                    return BadRequest("Cet usager n'existe pas.");
+                    return NotFound("Cet usager n'existe pas.");
 
                 if (CheckPassword(sellerDb.Id, password))
                     return Ok(password); //retourner un jsonWebToken
@@ -132,17 +157,23 @@ namespace SellerApi.Controllers
             }
             catch (Exception ex)
             {
-                return BadRequest(ex.Message);
+                return StatusCode(500, ex.Message);
             }
         }
 
-
-        [HttpGet]
+        /// <summary>
+        /// Obtenir les statistiques d'un vendeur
+        /// </summary>
+        /// <param name="id">ID du vendeur</param>
+        /// <returns>Les statistiques du endeur</returns>
+        /// <response code="200">Les statistiques ont été trouvées</response>
+        /// <response code="404">Le vendeur n'existe pas</response>
+        /// <response code="500">Erreur serveur interne</response>
+        [ProducesResponseType(StatusCodes.Status200OK)]
+        [ProducesResponseType(StatusCodes.Status404NotFound)]
+        [ProducesResponseType(StatusCodes.Status500InternalServerError)]
         [Route("GetSellerStats/{id}")]
-        [SwaggerOperation(Summary = "Obtenir les statistiques d'un Vendeur")]
-        [SwaggerResponse(StatusCodes.Status200OK, "Les statistiques ont été trouvées", typeof(Seller))]
-        [SwaggerResponse(StatusCodes.Status400BadRequest, "La requête est invalide", typeof(ValidationProblemDetails))]
-        [SwaggerResponse(StatusCodes.Status404NotFound, "Le vendeur n'existe pas")]
+        [HttpGet]
         public async Task<ActionResult<SellerStats>> GetSellerStats([SwaggerParameter("ID du seller")] int id) //id du Seller
         {
             try
@@ -156,16 +187,23 @@ namespace SellerApi.Controllers
             }
             catch (Exception ex)
             {
-                return BadRequest(ex.Message);
+                return StatusCode(500, ex.Message);
             }
         }
 
+        /// <summary>
+        /// Supprimer un vendeur
+        /// </summary>
+        /// <param name="id">ID du vendeur</param>
+        /// <returns>Les statistiques du endeur</returns>
+        /// <response code="200">Le vendeur a été supprimé</response>
+        /// <response code="404">Le vendeur n'existe pas</response>
+        /// <response code="500">Erreur serveur interne</response>
+        [ProducesResponseType(StatusCodes.Status200OK)]
+        [ProducesResponseType(StatusCodes.Status404NotFound)]
+        [ProducesResponseType(StatusCodes.Status500InternalServerError)]
+        [Route("DeleteSeller/{id}")]
         [HttpDelete]
-        [Route("DeleteClient/{id}")]
-        [SwaggerOperation(Summary = "Supprimer un client")]
-        [SwaggerResponse(StatusCodes.Status200OK, "Le client a été supprimé", typeof(SellerStats))]
-        [SwaggerResponse(StatusCodes.Status400BadRequest, "La requête est invalide", typeof(ValidationProblemDetails))]
-        [SwaggerResponse(StatusCodes.Status404NotFound, "Le client n'existe pas")]
         public async Task<ActionResult<SellerStats>> DeleteSeller(int id)
         {
             try
@@ -184,18 +222,23 @@ namespace SellerApi.Controllers
             }
             catch (Exception ex)
             {
-                return BadRequest(ex.Message);
+                return StatusCode(500, ex.Message);
             }
         }
 
-
-
-        [HttpPut]
+        /// <summary>
+        /// Modifier un vendeur
+        /// </summary>
+        /// <param name="seller">Vendeur</param>
+        /// <returns></returns>
+        /// <response code="200">Le vendeur a été modifié</response>
+        /// <response code="404">Le vendeur n'existe pas</response>
+        /// <response code="500">Erreur serveur interne</response>
+        [ProducesResponseType(StatusCodes.Status200OK)]
+        [ProducesResponseType(StatusCodes.Status404NotFound)]
+        [ProducesResponseType(StatusCodes.Status500InternalServerError)]
         [Route("UpdateSeller")]
-        [SwaggerOperation(Summary = "Modifier un Seller")]
-        [SwaggerResponse(StatusCodes.Status200OK, "Le seller a été modifié", typeof(Seller))]
-        [SwaggerResponse(StatusCodes.Status400BadRequest, "La requête est invalide", typeof(ValidationProblemDetails))]
-        [SwaggerResponse(StatusCodes.Status404NotFound, "Le Seller n'existe pas")]
+        [HttpPut]
         public async Task<ActionResult<Seller>> UpdateSeller(Seller seller)
         {
             try
@@ -214,7 +257,7 @@ namespace SellerApi.Controllers
             }
             catch (Exception ex)
             {
-                return BadRequest(ex.Message);
+                return StatusCode(500, ex.Message);
             }
         }
 
