@@ -10,7 +10,7 @@ namespace ProductApi.Controllers
 {
     [ApiController]
     [Route("api/[controller]")]
-    //[Produces("app/json")]
+    [Produces("application/json")]
     public class ProductController : ControllerBase
     {
         private ProductDBContext _dbContext;
@@ -200,9 +200,12 @@ namespace ProductApi.Controllers
         {
             try
             {
-                //Appeler l'API vendeur pour déterminer si le vendeur existe vraiment?
-                //if (seller == null)
-                //    return NotFound();
+                //Appeler l'API vendeur pour déterminer si le vendeur existe
+                bool sellerExists = await SellerExists(id);
+                if (!sellerExists)
+                {
+                    return NotFound();
+                }
 
                 List<Models.Product> products = await _dbContext.Product.Where(c => c.SellerId == id).ToListAsync();
 
